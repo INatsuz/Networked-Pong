@@ -34,15 +34,28 @@ public class Ball {
         }else if(x + speedX < 0){
             x = 0;
         }else if(x + DIAMETER + speedX > 700){
-            x = 700;
+            x = 700 - DIAMETER;
         }
         if(y + speedY >= 0 && y + DIAMETER + speedY <= 700){
             y += speedY;
         }else if(y + speedY < 0){
             y = 0;
         }else if(y + DIAMETER + speedY > 700){
-            y = 700;
+            y = 700 - DIAMETER;
         }
+    }
+    
+    public void setSpeeds(int speedX, int speedY){
+        this.speedX = speedX;
+        this.speedY = speedY;
+    }
+    
+    public void setSpeedX(int speedX){
+        this.speedX = speedX;
+    }
+    
+    public void setSpeedY(int speedY){
+        this.speedY = speedY;
     }
 
 }

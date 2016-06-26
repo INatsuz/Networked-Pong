@@ -29,18 +29,18 @@ public class PongClient implements ActionListener, KeyListener {
 
     private boolean up = false, down = false;
 
-    private boolean ballMoving = true;
+    private boolean ballMoving = false;
     private int gameState = 0;
-    private Paddle paddle;
-    private Paddle enemyPaddle;
-    private Ball ball;
+    private final Paddle paddle;
+    private final Paddle enemyPaddle;
+    private final Ball ball;
 
     private DatagramSocket socket;
     private InetAddress ip;
     private int PORT;
     private String ID;
-    
-    private Random random;
+
+    private final Random random;
 
     Thread receive, send;
 
@@ -64,7 +64,7 @@ public class PongClient implements ActionListener, KeyListener {
         } catch (UnknownHostException ex) {
             ex.printStackTrace();
         }
-        
+
         random = new Random();
 
         paddle = new Paddle(0, HEIGHT / 2 - 100, this);
@@ -110,6 +110,7 @@ public class PongClient implements ActionListener, KeyListener {
             } else if (down) {
                 paddle.move(false);
             }
+            ball.update();
         }
         gamePanel.repaint();
     }
@@ -129,8 +130,8 @@ public class PongClient implements ActionListener, KeyListener {
         } else if (key == KeyEvent.VK_S) {
             down = true;
         }
-        if(key == KeyEvent.VK_SPACE && !ballMoving){
-            send("ba/" + String.valueOf(random.nextInt(2)) + "/" + random.nextInt(90));
+        if (key == KeyEvent.VK_SPACE && !ballMoving) {
+            send("ba/" + String.valueOf(random.nextInt(91) - 45) + "/" + random.nextInt(2));
         }
     }
 
@@ -181,6 +182,11 @@ public class PongClient implements ActionListener, KeyListener {
                         if (ballMoving) {
                             enemyPaddle.setY(Integer.parseInt(strings[2]));
                         }
+                    } else if (new String(packet.getData()).trim().startsWith("ba/")) {
+                        String[] strings = new String[3];
+                        strings = new String(packet.getData()).trim().split("/");
+                        ballMoving = true;
+                        ball.setSpeeds(Integer.parseInt(strings[1]), Integer.parseInt(strings[2]));
                     }
                 }
             }
@@ -188,10 +194,10 @@ public class PongClient implements ActionListener, KeyListener {
         receive.start();
         System.out.println("Thread Receive");
     }
-    
-    private void send(String message){
-        send = new Thread("Send"){
-            public void run(){
+
+    private void send(String message) {
+        send = new Thread("Send") {
+            public void run() {
                 sendPacket(message);
             }
         };
