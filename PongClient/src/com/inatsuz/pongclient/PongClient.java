@@ -14,6 +14,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
@@ -38,6 +39,8 @@ public class PongClient implements ActionListener, KeyListener {
     private InetAddress ip;
     private int PORT;
     private String ID;
+    
+    private Random random;
 
     Thread receive, send;
 
@@ -61,6 +64,8 @@ public class PongClient implements ActionListener, KeyListener {
         } catch (UnknownHostException ex) {
             ex.printStackTrace();
         }
+        
+        random = new Random();
 
         paddle = new Paddle(0, HEIGHT / 2 - 100, this);
         enemyPaddle = new Paddle(WIDTH - 50, HEIGHT / 2 - 100, this);
@@ -125,7 +130,7 @@ public class PongClient implements ActionListener, KeyListener {
             down = true;
         }
         if(key == KeyEvent.VK_SPACE && !ballMoving){
-            send("");
+            send("ba/" + String.valueOf(random.nextInt(2)) + "/" + random.nextInt(90));
         }
     }
 
