@@ -99,7 +99,10 @@ public class PongServer {
             }
             speedX = (int) (BALL_SPEED * Math.cos(radians) * direction);
             speedY = (int) (BALL_SPEED * Math.sin(radians));
-            send("ba/" + String.valueOf(speedX) + "/" + String.valueOf(speedY));
+            for(int i = 0; i < MAX_CLIENTS; i++){
+                sendPacket("ba/" + String.valueOf(speedX) + "/" + String.valueOf(speedY), clients[i].ip, clients[i].PORT);
+                speedX = -speedX;
+            }
             System.out.println("BA");
         }
     }
