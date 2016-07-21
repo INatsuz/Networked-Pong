@@ -6,58 +6,32 @@ import java.awt.Graphics2D;
 
 public class Ball {
 
-    private int x = 0, y = 0;
+    private int x = 700 / 2 - 10, y = 700 / 2 - 10;
     private final int DIAMETER = 20;
-    private final int SPEED = 12;
-    private int speedX, speedY;
-    
+
     private PongClient pongClient;
 
-    public Ball(int x, int y, PongClient pongClient) {
-        this.x = x;
-        this.y = y;
+    public Ball(PongClient pongClient) {
+        this.pongClient = pongClient;
     }
-    
-    protected void update(){
-        move();
-    }
-    
-    protected void render(Graphics g){
+
+    protected void render(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(Color.WHITE);
         g2.fillOval(x, y, DIAMETER, DIAMETER);
     }
     
-    private void move(){
-        if(x + speedX >= 0 && x + DIAMETER + speedX <= 700){
-            x += speedX;
-        }else if(x + speedX < 0){
-            x = 0;
-        }else if(x + DIAMETER + speedX > 700){
-            x = 700 - DIAMETER;
-        }
-        if(y + speedY >= 0 && y + DIAMETER + speedY <= 700){
-            y += speedY;
-        }else if(y + speedY < 0){
-            y = 0;
-        }else if(y + DIAMETER + speedY > 700){
-            y = 700 - DIAMETER;
-        }
+    public void setCoords(int x, int y){
+        this.x = x;
+        this.y = y;
     }
     
-    public void setSpeeds(int speedX, int speedY){
-        this.speedX = speedX;
-        this.speedY = speedY;
+    public void setX(int x){
+        this.x = x;
     }
     
-    public void setSpeedX(int speedX){
-        this.speedX = speedX;
-    }
-    
-    public void setSpeedY(int speedY){
-        this.speedY = speedY;
+    public void setY(int y){
+        this.y = y;
     }
 
 }
-
-//Fazer As Colisoes Com Trigonometria e o Movimento Da Bola

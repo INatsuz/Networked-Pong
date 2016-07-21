@@ -54,5 +54,13 @@ public class Paddle {
     public void setY(int y) {
         this.y = y;
     }
+    
+    public int getHeight(){
+        return HEIGHT;
+    }
+    
+    public int getWidth(){
+        return WIDTH;
+    }
 
 }

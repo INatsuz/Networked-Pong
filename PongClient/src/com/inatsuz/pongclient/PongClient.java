@@ -69,7 +69,7 @@ public class PongClient implements ActionListener, KeyListener {
 
         paddle = new Paddle(0, HEIGHT / 2 - 100, this);
         enemyPaddle = new Paddle(WIDTH - 50, HEIGHT / 2 - 100, this);
-        ball = new Ball(WIDTH / 2 - 10, HEIGHT / 2 - 10, this);
+        ball = new Ball(this);
 
         jFrame = new JFrame("Pong");
         gamePanel = new GamePanel();
@@ -110,7 +110,6 @@ public class PongClient implements ActionListener, KeyListener {
             } else if (down) {
                 paddle.move(false);
             }
-            ball.update();
         }
         gamePanel.repaint();
     }
@@ -131,7 +130,8 @@ public class PongClient implements ActionListener, KeyListener {
             down = true;
         }
         if (key == KeyEvent.VK_SPACE && !ballMoving) {
-            send("ba/" + String.valueOf(random.nextInt(91) - 45) + "/" + random.nextInt(2));
+            send("bs/" + String.valueOf(random.nextInt(91) - 45) + "/" + random.nextInt(2));
+            ballMoving = true;
         }
     }
 
@@ -149,7 +149,7 @@ public class PongClient implements ActionListener, KeyListener {
         DatagramPacket packet = new DatagramPacket(data, data.length, ip, PORT);
         try {
             socket.send(packet);
-            System.out.println("Packet Sent");
+//            System.out.println("Packet Sent");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -182,11 +182,13 @@ public class PongClient implements ActionListener, KeyListener {
                         if (ballMoving) {
                             enemyPaddle.setY(Integer.parseInt(strings[2]));
                         }
-                    } else if (new String(packet.getData()).trim().startsWith("ba/")) {
+                    } else if (new String(packet.getData()).trim().startsWith("bc/")) {
                         String[] strings = new String[3];
                         strings = new String(packet.getData()).trim().split("/");
+                        System.out.println(strings[1] + ":" + strings[2]);
+                        ball.setCoords(Integer.parseInt(strings[1]), Integer.parseInt(strings[2]));
+                    }else if(new String(packet.getData()).trim().startsWith("bm/")){
                         ballMoving = true;
-                        ball.setSpeeds(Integer.parseInt(strings[1]), Integer.parseInt(strings[2]));
                     }
                 }
             }
@@ -209,7 +211,7 @@ public class PongClient implements ActionListener, KeyListener {
         DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
             socket.receive(packet);
-            System.out.println("Packet");
+//            System.out.println("Packet");
             return packet;
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -218,5 +220,3 @@ public class PongClient implements ActionListener, KeyListener {
     }
 
 }
-
-//Come Up With A Format For The Ball Moving Packet

@@ -1,12 +1,15 @@
 package com.inatsuz.pongserver;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import javax.swing.Timer;
 
-public class PongServer {
+public class PongServer implements ActionListener {
 
     protected static boolean running = false;
 
@@ -17,6 +20,8 @@ public class PongServer {
     private DatagramSocket socket;
 
     private final int BALL_SPEED = 12;
+    private final int WIDTH = 700, HEIGHT = 700;
+    private Ball ball;
 
     private Thread receive, send;
 
@@ -31,6 +36,9 @@ public class PongServer {
             ex.printStackTrace();
         }
         System.out.println("Server Started");
+        ball = new Ball(WIDTH / 2 - 10, HEIGHT / 2 - 10, clients);
+        Timer timer = new Timer(20, this);
+        timer.start();
     }
 
     public static void main(String[] args) {
@@ -72,6 +80,7 @@ public class PongServer {
                 if (clients[i] == null) {
                     clients[i] = new Clients(packet.getAddress(), packet.getPort());
                     sendID(String.valueOf(i), packet.getAddress(), packet.getPort());
+                    clients[i].setX(700 * i - 50 * i);
                     System.out.println(i);
                     return;
                 }
@@ -81,29 +90,24 @@ public class PongServer {
         } else if (new String(packet.getData()).trim().startsWith("co/")) {
             String[] strings = new String[3];
             strings = new String(packet.getData()).trim().split("/");
-            for (int i = 0; i <= MAX_CLIENTS; i++) {
-                System.out.println(strings[i]);
-            }
+            clients[Integer.parseInt(strings[1])].setY(Integer.parseInt(strings[2]));
             send(Integer.parseInt(strings[1].trim()), packet);
-        } else if (new String(packet.getData()).trim().startsWith("ba/")) {
+        } else if (new String(packet.getData()).trim().startsWith("bs/")) {
             String[] strings = new String[3];
+            send("bm/");
+            ball.ballMoving = true;
             int direction = 0, speedX, speedY;
             double radians;
             strings = new String(packet.getData()).trim().split("/");
-            System.out.println("");
             radians = Math.toRadians(Integer.parseInt(strings[1]));
             if (Integer.parseInt(strings[2]) == 0) {
                 direction = -1;
             } else if (Integer.parseInt(strings[2]) == 1) {
                 direction = 1;
             }
-            speedX = (int) (BALL_SPEED * Math.cos(radians) * direction);
+            speedX = (int) (BALL_SPEED * Math.cos(radians)) * direction;
             speedY = (int) (BALL_SPEED * Math.sin(radians));
-            for(int i = 0; i < MAX_CLIENTS; i++){
-                sendPacket("ba/" + String.valueOf(speedX) + "/" + String.valueOf(speedY), clients[i].ip, clients[i].PORT);
-                speedX = -speedX;
-            }
-            System.out.println("BA");
+            ball.setSpeeds(speedX, speedY);
         }
     }
 
@@ -121,7 +125,7 @@ public class PongServer {
         };
         send.start();
     }
-
+    
     private void send(String message) {
         send = new Thread("Send") {
             public void run() {
@@ -153,6 +157,21 @@ public class PongServer {
             System.out.println("Packet Sent to: " + ip + ":" + port);
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        ball.update();
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            if (i == 0) {
+                if (clients[i] != null) {
+                    sendPacket("bc/" + ball.getX() + "/" + ball.getY(), clients[i].ip, clients[i].PORT);
+                }
+            } else {
+                if (clients[i] != null) {
+                    sendPacket("bc/" + (700 - 20 - ball.getX()) + "/" + ball.getY(), clients[i].ip, clients[i].PORT);
+                }
+            }
         }
     }
 
