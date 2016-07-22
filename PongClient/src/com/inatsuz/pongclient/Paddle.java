@@ -9,6 +9,8 @@ public class Paddle {
     private final int WIDTH = 50, HEIGHT = 200;
     private int x, y;
     private final int SPEED = 20;
+    private int score = 0;
+
     private PongClient pongClient;
 
     public Paddle(int x, int y, PongClient pongClient) {
@@ -54,13 +56,25 @@ public class Paddle {
     public void setY(int y) {
         this.y = y;
     }
-    
-    public int getHeight(){
+
+    public int getHeight() {
         return HEIGHT;
     }
-    
-    public int getWidth(){
+
+    public int getWidth() {
         return WIDTH;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public boolean checkWin() {
+        return score >= 5;
     }
 
 }

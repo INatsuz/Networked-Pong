@@ -1,6 +1,7 @@
 package com.inatsuz.pongclient;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -30,7 +31,7 @@ public class PongClient implements ActionListener, KeyListener {
     private boolean up = false, down = false;
 
     private boolean ballMoving = false;
-    private int gameState = 0;
+    private int gameState = 0; // 0 - Playing || 1 - You Won Screen || 2 - Enemy Won Screen
     private final Paddle paddle;
     private final Paddle enemyPaddle;
     private final Ball ball;
@@ -93,13 +94,24 @@ public class PongClient implements ActionListener, KeyListener {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", 50, 50));
         g2.fillRect(0, 0, WIDTH, HEIGHT);
-        g2.setColor(Color.WHITE);
-        g2.drawLine(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
-        g2.drawOval(WIDTH / 2 - 100, HEIGHT / 2 - 100, 200, 200);
-        paddle.render(g);
-        enemyPaddle.render(g);
-        ball.render(g);
+        if (gameState == 0) {
+            g2.setColor(Color.WHITE);
+            g2.drawLine(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
+            g2.drawOval(WIDTH / 2 - 100, HEIGHT / 2 - 100, 200, 200);
+            paddle.render(g);
+            enemyPaddle.render(g);
+            g2.drawString(String.valueOf(paddle.getScore()), 250, 100);
+            g2.drawString(String.valueOf(enemyPaddle.getScore()), 418, 100);
+            ball.render(g);
+        } else if (gameState == 1) {
+            g2.setColor(Color.WHITE);
+            g2.drawString("You Won", 250, 300);
+        } else if (gameState == 2) {
+            g2.setColor(Color.WHITE);
+            g2.drawString("Enemy Won", 220, 300);
+        }
     }
 
     private void update() {
@@ -110,6 +122,20 @@ public class PongClient implements ActionListener, KeyListener {
             } else if (down) {
                 paddle.move(false);
             }
+        } else {
+            paddle.setY(HEIGHT / 2 - 100);
+            enemyPaddle.setY(HEIGHT / 2 - 100);
+        }
+        if (paddle.checkWin() || enemyPaddle.checkWin()) {
+            if (paddle.checkWin()) {
+                gameState = 1;
+            } else if (enemyPaddle.checkWin()) {
+                gameState = 2;
+            }
+            paddle.setScore(0);
+            enemyPaddle.setScore(0);
+            send("rs/");
+            ballMoving = false;
         }
         gamePanel.repaint();
     }
@@ -129,9 +155,16 @@ public class PongClient implements ActionListener, KeyListener {
         } else if (key == KeyEvent.VK_S) {
             down = true;
         }
-        if (key == KeyEvent.VK_SPACE && !ballMoving) {
-            send("bs/" + String.valueOf(random.nextInt(91) - 45) + "/" + random.nextInt(2));
-            ballMoving = true;
+        if (key == KeyEvent.VK_SPACE) {
+            if (gameState == 0) {
+                if (!ballMoving) {
+                    send("bs/" + String.valueOf(random.nextInt(91) - 45) + "/" + random.nextInt(2));
+                    ballMoving = true;
+                }
+            } else {
+                gameState = 0;
+                System.out.println(paddle.getScore() + ":" + enemyPaddle.getScore());
+            }
         }
     }
 
@@ -149,7 +182,6 @@ public class PongClient implements ActionListener, KeyListener {
         DatagramPacket packet = new DatagramPacket(data, data.length, ip, PORT);
         try {
             socket.send(packet);
-//            System.out.println("Packet Sent");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -185,10 +217,22 @@ public class PongClient implements ActionListener, KeyListener {
                     } else if (new String(packet.getData()).trim().startsWith("bc/")) {
                         String[] strings = new String[3];
                         strings = new String(packet.getData()).trim().split("/");
-                        System.out.println(strings[1] + ":" + strings[2]);
+//                        System.out.println(strings[1] + ":" + strings[2]);
                         ball.setCoords(Integer.parseInt(strings[1]), Integer.parseInt(strings[2]));
-                    }else if(new String(packet.getData()).trim().startsWith("bm/")){
-                        ballMoving = true;
+                    } else if (new String(packet.getData()).trim().startsWith("bm/")) {
+                        String[] strings = new String[2];
+                        strings = new String(packet.getData()).trim().split("/");
+                        ballMoving = Boolean.valueOf(strings[1]);
+                    } else if (new String(packet.getData()).trim().startsWith("sc/")) {
+                        String[] strings = new String[3];
+                        strings = new String(packet.getData()).trim().split("/");
+                        if (Integer.parseInt(ID) == 0) {
+                            paddle.setScore(Integer.parseInt(strings[1]));
+                            enemyPaddle.setScore(Integer.parseInt(strings[2]));
+                        } else {
+                            paddle.setScore(Integer.parseInt(strings[2]));
+                            enemyPaddle.setScore(Integer.parseInt(strings[1]));
+                        }
                     }
                 }
             }
@@ -211,7 +255,6 @@ public class PongClient implements ActionListener, KeyListener {
         DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
             socket.receive(packet);
-//            System.out.println("Packet");
             return packet;
         } catch (IOException ex) {
             ex.printStackTrace();

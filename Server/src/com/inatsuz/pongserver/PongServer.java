@@ -25,6 +25,8 @@ public class PongServer implements ActionListener {
 
     private Thread receive, send;
 
+    private static PongServer pongServer;
+
     public PongServer() {
         System.out.println("Server Starting");
         running = true;
@@ -36,13 +38,13 @@ public class PongServer implements ActionListener {
             ex.printStackTrace();
         }
         System.out.println("Server Started");
-        ball = new Ball(WIDTH / 2 - 10, HEIGHT / 2 - 10, clients);
+        ball = new Ball(WIDTH / 2 - 10, HEIGHT / 2 - 10, clients, pongServer);
         Timer timer = new Timer(20, this);
         timer.start();
     }
 
     public static void main(String[] args) {
-        PongServer pongServer = new PongServer();
+        pongServer = new PongServer();
     }
 
     private void receive() {
@@ -94,7 +96,7 @@ public class PongServer implements ActionListener {
             send(Integer.parseInt(strings[1].trim()), packet);
         } else if (new String(packet.getData()).trim().startsWith("bs/")) {
             String[] strings = new String[3];
-            send("bm/");
+            send("bm/true");
             ball.ballMoving = true;
             int direction = 0, speedX, speedY;
             double radians;
@@ -108,6 +110,8 @@ public class PongServer implements ActionListener {
             speedX = (int) (BALL_SPEED * Math.cos(radians)) * direction;
             speedY = (int) (BALL_SPEED * Math.sin(radians));
             ball.setSpeeds(speedX, speedY);
+        } else if (new String(packet.getData()).trim().startsWith("rs/")) {
+            reset();
         }
     }
 
@@ -125,8 +129,8 @@ public class PongServer implements ActionListener {
         };
         send.start();
     }
-    
-    private void send(String message) {
+
+    protected void send(String message) {
         send = new Thread("Send") {
             public void run() {
                 for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -161,18 +165,36 @@ public class PongServer implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        ball.update();
+        if (ball.ballMoving) {
+            ball.update();
+        } else {
+            send("bm/false");
+            if (clients[0] != null && clients[1] != null) {
+                send("sc/" + String.valueOf(clients[0].score) + "/" + String.valueOf(clients[1].score));
+            }
+        }
         for (int i = 0; i < MAX_CLIENTS; i++) {
-            if (i == 0) {
-                if (clients[i] != null) {
+            if (clients[i] != null) {
+                if (i == 0) {
                     sendPacket("bc/" + ball.getX() + "/" + ball.getY(), clients[i].ip, clients[i].PORT);
-                }
-            } else {
-                if (clients[i] != null) {
+                } else {
                     sendPacket("bc/" + (700 - 20 - ball.getX()) + "/" + ball.getY(), clients[i].ip, clients[i].PORT);
                 }
             }
         }
     }
 
+    private void reset() {
+        ball.setX(WIDTH / 2 - 10);
+        ball.setY(HEIGHT / 2 - 10);
+        send("bm/false");
+        ball.ballMoving = false;
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+            clients[i].score = 0;
+        }
+    }
+
 }
+
+
+//Handle The Reset Packet

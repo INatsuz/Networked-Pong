@@ -33,5 +33,5 @@ public class Ball {
     public void setY(int y){
         this.y = y;
     }
-
+    
 }

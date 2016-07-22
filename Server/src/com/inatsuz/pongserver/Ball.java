@@ -11,11 +11,13 @@ public class Ball {
     protected boolean ballMoving = false;
 
     private Clients[] clients;
+    private PongServer pongServer;
 
-    public Ball(int x, int y, Clients[] clients) {
+    public Ball(int x, int y, Clients[] clients, PongServer pongServer) {
         this.x = x;
         this.y = y;
         this.clients = clients;
+        this.pongServer = pongServer;
     }
 
     private void move() {
@@ -37,7 +39,7 @@ public class Ball {
         }
     }
 
-    private void checkPaddleCollision(Clients[] clients) {
+    private void checkPaddleCollision() {
         if (y + DIAMETER / 2 >= clients[0].getY() && y + DIAMETER / 2 <= clients[0].getY() + clients[0].getHeight()) {
             if (x <= clients[0].getX() + clients[0].getWidth()) {
                 double ratio, radians;
@@ -62,12 +64,32 @@ public class Ball {
         }
     }
 
+    private void checkScore() {
+        if (x <= 0 || x >= 700 - DIAMETER) {
+            if (x <= 0) {
+                clients[1].score++;
+            } else if (x >= 700 - DIAMETER) {
+                clients[0].score++;
+            }
+            ballMoving = false;
+            hits = 0;
+        }
+    }
+
     public int getX() {
         return x;
     }
 
     public int getY() {
         return y;
+    }
+    
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     public void setSpeeds(int speedX, int speedY) {
@@ -76,11 +98,15 @@ public class Ball {
     }
 
     protected void update() {
+        checkScore();
         if (ballMoving) {
             if (clients[0] != null && clients[1] != null) {
-                checkPaddleCollision(clients);
+                checkPaddleCollision();
             }
             move();
+        } else {
+            x = 700 / 2 - 10;
+            y = 700 / 2 - 10;
         }
     }
 

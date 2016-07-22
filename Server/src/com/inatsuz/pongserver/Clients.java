@@ -8,6 +8,8 @@ public class Clients {
     protected int PORT;
     private int x, y;
     private final int HEIGHT = 200, WIDTH = 50;
+    
+    protected int score = 0;
 
     public Clients(InetAddress ip, int port) {
         this.ip = ip;
@@ -36,6 +38,10 @@ public class Clients {
     
     public int getWidth(){
         return WIDTH;
+    }
+    
+    private int getScore(){
+        return score;
     }
 
 }
