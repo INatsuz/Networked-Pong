@@ -8,7 +8,7 @@ public class Paddle {
 
     private final int WIDTH = 50, HEIGHT = 200;
     private int x, y;
-    private final int SPEED = 20;
+    private int SPEED = 20;
     private int score = 0;
 
     private PongClient pongClient;
@@ -75,6 +75,10 @@ public class Paddle {
 
     public boolean checkWin() {
         return score >= 5;
+    }
+    
+    public void setSpeed(int speed){
+        this.SPEED = speed;
     }
 
 }

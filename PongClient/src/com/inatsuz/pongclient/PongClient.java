@@ -39,7 +39,7 @@ public class PongClient implements ActionListener, KeyListener {
     private DatagramSocket socket;
     private InetAddress ip;
     private int PORT;
-    private String ID;
+    private int ID;
 
     private final Random random;
 
@@ -52,14 +52,8 @@ public class PongClient implements ActionListener, KeyListener {
             socket = new DatagramSocket();
             ip = InetAddress.getByName(JOptionPane.showInputDialog("Insert IP"));
             PORT = Integer.parseInt(JOptionPane.showInputDialog("Insert Port"));
-            sendPacket("c/");
-            ID = receiveID().trim();
-            if (ID != null) {
-                System.out.println(ID);
-                if (Integer.parseInt(ID) == 0 || Integer.parseInt(ID) == 1) {
-                    receive();
-                }
-            }
+            receive();
+            send("c/");
         } catch (SocketException ex) {
             ex.printStackTrace();
         } catch (UnknownHostException ex) {
@@ -187,22 +181,6 @@ public class PongClient implements ActionListener, KeyListener {
         }
     }
 
-    private String receiveID() {
-        byte[] data = new byte[1024];
-        DatagramPacket packet = new DatagramPacket(data, data.length);
-        try {
-            socket.receive(packet);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        if (new String(data).trim().equalsIgnoreCase("Server Is Full")) {
-            return new String(data).trim();
-        } else if (Integer.parseInt(new String(data).trim()) == 1 || Integer.parseInt(new String(data).trim()) == 0) {
-            return new String(data).trim();
-        }
-        return null;
-    }
-
     private void receive() {
         receive = new Thread("Receive") {
             public void run() {
@@ -217,7 +195,7 @@ public class PongClient implements ActionListener, KeyListener {
                     } else if (new String(packet.getData()).trim().startsWith("bc/")) {
                         String[] strings = new String[3];
                         strings = new String(packet.getData()).trim().split("/");
-//                        System.out.println(strings[1] + ":" + strings[2]);
+                        System.out.println(strings[1] + ":" + strings[2]);
                         ball.setCoords(Integer.parseInt(strings[1]), Integer.parseInt(strings[2]));
                     } else if (new String(packet.getData()).trim().startsWith("bm/")) {
                         String[] strings = new String[2];
@@ -226,12 +204,20 @@ public class PongClient implements ActionListener, KeyListener {
                     } else if (new String(packet.getData()).trim().startsWith("sc/")) {
                         String[] strings = new String[3];
                         strings = new String(packet.getData()).trim().split("/");
-                        if (Integer.parseInt(ID) == 0) {
+                        if (ID == 0) {
                             paddle.setScore(Integer.parseInt(strings[1]));
                             enemyPaddle.setScore(Integer.parseInt(strings[2]));
-                        } else {
+                        } else if (ID == 1) {
                             paddle.setScore(Integer.parseInt(strings[2]));
                             enemyPaddle.setScore(Integer.parseInt(strings[1]));
+                        }
+                    } else if (new String(packet.getData()).trim().startsWith("id/")) {
+                        String[] strings = new String[2];
+                        strings = new String(packet.getData()).trim().split("/");
+                        if (Integer.parseInt(strings[1].trim()) == 0 || Integer.parseInt(strings[1].trim()) == 1) {
+                            ID = Integer.parseInt(strings[1]);
+                        } else {
+                            System.out.println("Server Full");
                         }
                     }
                 }

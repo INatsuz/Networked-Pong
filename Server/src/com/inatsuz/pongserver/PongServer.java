@@ -66,22 +66,12 @@ public class PongServer implements ActionListener {
         receive.start();
     }
 
-    private void sendID(String ID, InetAddress ip, int port) {
-        byte[] data = ID.getBytes();
-        DatagramPacket packet = new DatagramPacket(data, data.length, ip, port);
-        try {
-            socket.send(packet);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
     private void process(DatagramPacket packet) {
         if (new String(packet.getData()).trim().startsWith("c/")) {
             for (int i = 0; i < MAX_CLIENTS; i++) {
                 if (clients[i] == null) {
                     clients[i] = new Clients(packet.getAddress(), packet.getPort());
-                    sendID(String.valueOf(i), packet.getAddress(), packet.getPort());
+                    sendPacket("id/" + i, packet.getAddress(), packet.getPort());
                     clients[i].setX(700 * i - 50 * i);
                     System.out.println(i);
                     return;

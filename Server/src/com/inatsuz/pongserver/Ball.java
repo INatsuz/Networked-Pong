@@ -5,7 +5,7 @@ public class Ball {
     private int x, y;
     private int speedX, speedY;
     private int hits = 0;
-    private final int SPEED = 12;
+    private final int SPEED = 15;
     private final int DIAMETER = 20;
 
     protected boolean ballMoving = false;
@@ -46,8 +46,8 @@ public class Ball {
                 ratio = (float) (y + DIAMETER / 2 - clients[0].getY()) / (float) clients[0].getHeight();
                 radians = (float) (-Math.PI / 4 + Math.PI / 2 * ratio);
                 System.out.println(ratio + ":" + radians);
-                speedX = (int) ((SPEED + hits / 5) * Math.cos(radians));
-                speedY = (int) ((SPEED + hits / 5) * Math.sin(radians));
+                speedX = (int) ((SPEED + hits / 4) * Math.cos(radians));
+                speedY = (int) ((SPEED + hits / 4) * Math.sin(radians));
                 hits++;
             }
         }
